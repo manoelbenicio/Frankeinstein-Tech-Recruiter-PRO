@@ -63,7 +63,8 @@ app = FastAPI(
 
 # --- Configuração de CORS ---
 origins = [
-    "http://localhost:3000", # Endereço do frontend em desenvolvimento
+    "http://localhost:3000",
+    "http://localhost:5173", # Endereço do frontend em desenvolvimento
     # Adicionar a URL do frontend de produção aqui
 ]
 app.add_middleware(
@@ -95,3 +96,30 @@ async def get_headcount_dashboard(project_id: Optional[str] = None, current_user
 async def analyze_cv(current_user: User = Depends(require_ops_role)):
     raise HTTPException(status_code=501, detail="Funcionalidade a ser implementada na Fase 6.")
 
+# --- Endpoint de Debug: Firestore ---
+from fastapi.responses import JSONResponse
+import os
+
+@app.get("/debug/firestore", tags=["Debug"], summary="Verifica conexão com Firestore")
+async def debug_firestore():
+    try:
+        from google.cloud import firestore
+        client = firestore.Client()
+        project = getattr(client, "project", None)
+        _ = next(client.collections(), None)  # toca na API
+        return {
+            "ok": True,
+            "message": "Credencial válida e Firestore acessível.",
+            "project": project,
+            "credential_path": os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+        }
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "ok": False,
+                "message": "Falha ao acessar Firestore.",
+                "error": str(e),
+                "credential_path": os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+            },
+        )
