@@ -1,11 +1,3 @@
-cd unified_repo
-git init
-git branch -M main
-git remote add origin <URL_DO_SEU_REPO_GITHUB>
-git add .
-git commit -m "chore: scaffold inicial (docker, backend, frontend, infra, prompt gemini)"
-git push -u origin main
-
 
 # Plataforma Analítica Unificada
 
@@ -42,4 +34,3 @@ Para parar todos os containers, pressione `Ctrl + C` no terminal onde o `docker 
 
 ```bash
 docker compose down
-```

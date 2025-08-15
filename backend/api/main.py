@@ -4,15 +4,18 @@
 from fastapi import FastAPI, UploadFile, File, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
+import datetime
 from fastapi.middleware.cors import CORSMiddleware
 
 # --- Camada de Aplicação / Casos de Uso (Simulada) ---
 def process_etl_file_use_case(file: UploadFile, processor_func):
     print(f"Recebido arquivo '{file.filename}' para processamento ETL.")
+    # Em um sistema real, aqui você salvaria o arquivo e chamaria o ETL de forma assíncrona
     return {"job_id": "mock_job_123", "status": "processing_started", "file_name": file.filename}
 
 def get_dashboard_data_use_case(dashboard_name: str):
     print(f"Buscando dados para o dashboard: {dashboard_name}")
+    # Em um sistema real, aqui você consultaria o Firestore
     if dashboard_name == "pnl":
         return {"project": "Santander Agil", "revenue": 500000, "costs": 350000, "profit": 150000}
     if dashboard_name == "hc":
@@ -36,6 +39,7 @@ class PnLDashboard(BaseModel):
     profit: float = Field(..., example=150000.0)
     
 # --- Simulação de Autenticação e Autorização ---
+# Em uma implementação real, isso validaria um token JWT do Firebase
 def get_current_user(role: str = "viewer") -> User:
     if role not in ["viewer", "ops", "admin"]:
         raise HTTPException(status_code=400, detail="Invalid role specified for dependency")
@@ -90,3 +94,4 @@ async def get_headcount_dashboard(project_id: Optional[str] = None, current_user
 @app.post("/cv/analysis", tags=["Currículos"], summary="Gera análise de um CV para uma vaga")
 async def analyze_cv(current_user: User = Depends(require_ops_role)):
     raise HTTPException(status_code=501, detail="Funcionalidade a ser implementada na Fase 6.")
+

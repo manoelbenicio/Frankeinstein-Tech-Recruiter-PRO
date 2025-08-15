@@ -45,3 +45,4 @@ networks:
 secrets:
   gcp_credentials:
     file: ./secrets/firebase-credentials.json # O arquivo deve existir neste caminho
+

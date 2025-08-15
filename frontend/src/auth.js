@@ -1,28 +1,60 @@
-// Configuração básica do Firebase (substitua pelas variáveis do .env se usar Vite)
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
+// ATENÇÃO: Substitua este objeto de configuração pelas suas credenciais do Firebase
 const firebaseConfig = {
-  apiKey: import.meta?.env?.VITE_FIREBASE_API_KEY || "",
-  authDomain: import.meta?.env?.VITE_FIREBASE_AUTH_DOMAIN || "",
-  projectId: import.meta?.env?.VITE_FIREBASE_PROJECT_ID || "",
-  storageBucket: import.meta?.env?.VITE_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: import.meta?.env?.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: import.meta?.env?.VITE_FIREBASE_APP_ID || ""
+  apiKey: "AIza...",
+  authDomain: "seu-projeto.firebaseapp.com",
+  projectId: "seu-projeto",
+  storageBucket: "seu-projeto.appspot.com",
+  messagingSenderId: "...",
+  appId: "..."
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
-export async function signIn() {
-  await signInWithPopup(auth, provider);
-}
+export const signInWithGoogle = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    
+    const userDocRef = doc(db, "users", user.uid);
+    const userDocSnap = await getDoc(userDocRef);
 
-export function watchAuth(callback) {
-  return onAuthStateChanged(auth, callback);
-}
+    if (!userDocSnap.exists()) {
+      // Se for o primeiro login, cria um perfil para ele com role 'viewer'
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: 'viewer'
+      });
+    }
+    return user;
+  } catch (error) {
+    console.error("Erro durante o login com Google:", error);
+    return null;
+  }
+};
 
-export async function logOut() {
-  await signOut(auth);
-}
+export const logout = () => {
+  return signOut(auth);
+};
+
+export const onAuthChange = (callback) => {
+  return onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      callback(userDocSnap.exists() ? { ...user, ...userDocSnap.data() } : user);
+    } else {
+      callback(null);
+    }
+  });
+};
+

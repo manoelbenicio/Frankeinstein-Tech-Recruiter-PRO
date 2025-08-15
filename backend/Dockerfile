@@ -1,3 +1,7 @@
+
+# ------------------------------------------------------------------------------
+# ARQUIVO: /backend/Dockerfile
+# ------------------------------------------------------------------------------
 # Estágio 1: Build
 FROM python:3.10-slim as builder
 
@@ -26,3 +30,4 @@ EXPOSE 8000
 
 # Comando para iniciar a aplicação com Uvicorn
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+

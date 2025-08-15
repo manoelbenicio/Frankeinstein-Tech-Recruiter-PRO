@@ -1,9 +1,46 @@
+
+# ------------------------------------------------------------------------------
+# ARQUIVO: /infra/firebase/security.rules
+# ------------------------------------------------------------------------------
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // TODO: Regras por coleção e perfis (admin/ops/viewer)
-    match /{document=**} {
-      allow read, write: if false;
+
+    function isAuthenticated() { return request.auth != null; }
+    function getUserProfile() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data; }
+    function isAdmin() { return isAuthenticated() && getUserProfile().role == 'admin'; }
+    function isOps() { return isAuthenticated() && getUserProfile().role in ['admin', 'ops']; }
+    function isViewer() { return isAuthenticated() && getUserProfile().role in ['admin', 'ops', 'viewer']; }
+
+    match /users/{userId} {
+      allow read, update: if request.auth.uid == userId || isAdmin();
+      allow create: if request.auth.uid == userId;
+    }
+
+    match /pr_uploads/{uploadId} {
+      allow read: if isViewer();
+      allow create, update: if isOps();
+      allow delete: if isAdmin();
+    }
+
+    match /pr_hc/{hcId} {
+      allow read: if isViewer();
+      allow create, update: if isOps();
+      allow delete: if isAdmin();
+      allow write: if request.resource.data.project is string && request.resource.data.cost_rate_brl is number;
+    }
+
+    match /jobs/{jobId} {
+      allow read: if isViewer();
+      allow create, update: if isOps();
+      allow delete: if isAdmin();
+    }
+
+    match /cv_scores/{scoreId} {
+      allow read: if isViewer();
+      allow create: if isOps();
+      allow update, delete: if false;
     }
   }
 }
+
