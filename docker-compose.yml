@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Serviço do Backend (API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: unificada_backend
+    ports:
+      # Mapeia a porta 8000 do container para a porta 8000 da máquina host
+      - "8000:8000"
+    volumes:
+      # Monta o código local no container para desenvolvimento (remover em produção)
+      - ./backend:/app
+    environment:
+      # Variáveis de ambiente para a aplicação
+      - GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcp_credentials
+    secrets:
+      # Define um secret para as credenciais do Firebase/GCP
+      - gcp_credentials
+    networks:
+      - app-network
+
+  # Serviço do Frontend (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: unificada_frontend
+    ports:
+      # Mapeia a porta 80 do container para a porta 3000 da máquina host
+      - "3000:80"
+    depends_on:
+      - backend # Garante que o backend inicie antes do frontend
+    networks:
+      - app-network
+
+# Define a rede que os containers usarão para se comunicar
+networks:
+  app-network:
+    driver: bridge
+
+# Define o local do arquivo de segredos
+secrets:
+  gcp_credentials:
+    file: ./secrets/firebase-credentials.json # O arquivo deve existir neste caminho

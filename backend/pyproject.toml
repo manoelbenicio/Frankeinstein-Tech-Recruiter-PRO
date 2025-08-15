@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "plataforma-analitica-backend"
+version = "1.0.0"
+description = "API para a Plataforma Analítica Unificada"
+authors = ["Seu Nome <seu.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.100.0"
+uvicorn = {extras = ["standard"], version = "^0.23.2"}
+pandas = "^2.0.3"
+openpyxl = "^3.1.2"
+google-cloud-firestore = "^2.11.0"
+pydantic = "^2.1.1"
+python-multipart = "^0.0.6"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.0"
+flake8 = "^6.1.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
